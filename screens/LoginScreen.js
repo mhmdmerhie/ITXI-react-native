@@ -20,7 +20,6 @@ export default class LoginScreen extends React.Component {
 	}
 
 	handleUrlChange = (url) => {
-		console.log("URL:", url);
 		let hash = url.toString();
 		let token = hash.split("&")[0].split("=")[1];
 		spotify.setAccessToken(token);
@@ -32,7 +31,6 @@ export default class LoginScreen extends React.Component {
 		let result = await WebBrowser.openBrowserAsync(
 			"https://accounts.spotify.com/authorize?client_id=07bf4452c6e048a08f5ab7f6d00d16fc&redirect_uri=exp://192.168.0.111:19000&scope=user-read-private%20user-read-email&response_type=token&state=123"
 		);
-		console.log(result);
 	};
 
 	render() {

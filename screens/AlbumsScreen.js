@@ -1,48 +1,35 @@
 import React from "react";
 import { Alert, StyleSheet, View, ScrollView, FlatList, ActivityIndicator, Keyboard, TouchableWithoutFeedback } from "react-native";
 import { Button, Text, SearchBar } from "react-native-elements";
-import Artist from "../components/Artist";
 import SpotifyWebApi from "spotify-web-api-js";
+import Album from "../components/Album";
 
 let spotify = new SpotifyWebApi();
-export default class ArtistsScreen extends React.Component {
+class AlbumsScreen extends React.Component {
 	constructor(props) {
 		super(props);
 		this.state = {
-			token: "",
-			searchTerm: "",
-			dataSource: [],
-			getAlbums: false,
-			offset: 0,
-			timeout: 0,
-			error: null,
-			loading: false,
+            id: props.id,
+            artist: props.artist,
+            offset: 0,
+            dataSource: [],
+            loading: false,
 		};
 	}
 
 	componentDidMount() {
-		this.timer = null;
-	}
-
-	handleChange = (term) => {
-		this.setState({ searchTerm: term, dataSource: [], offset: 0 });
-		clearTimeout(this.timer);
-		this.timer = setTimeout(() => {
-			if (this.state.searchTerm.trim() !== "") this.search();
-		}, 1000);
-	};
-
-	search = () => {
-		let searchTerm = this.state.searchTerm;
-		this.setState({ loading: true });
+        this.getAlbums();
+    }
+    
+    getAlbums = () => {
 		spotify
-			.searchArtists(searchTerm, { offset: this.state.offset })
+			.getArtistAlbums(this.state.id, { offset: this.state.offset })
 			.then((res) => {
-				if (res.artists.items.length === 0) {
+				if (res.items === 0) {
 					this.setState({ error: "no results" });
 				} else {
 					this.setState({
-						dataSource: [...this.state.dataSource, ...res.artists.items],
+						dataSource: [...this.state.dataSource, ...res.items],
 						error: null,
 						loading: false,
 					});
@@ -67,7 +54,7 @@ export default class ArtistsScreen extends React.Component {
 
 	loadMore = () => {
 		this.setState({ offset: this.state.offset + 20 }, () => {
-			this.search();
+			this.getAlbums();
 		});
 	};
 
@@ -87,28 +74,38 @@ export default class ArtistsScreen extends React.Component {
 		);
 	};
 
+    renderFooter = () => {
+		if (!this.state.loading) return null;
+
+		return (
+			<View
+				style={{
+					paddingVertical: 20,
+					borderTopWidth: 1,
+					borderColor: "#CED0CE",
+				}}
+			>
+				<ActivityIndicator animating size="large" />
+			</View>
+		);
+	};
+
 	render() {
 		return (
 			<View>
-				<SearchBar
-					placeholder="Search for an artist"
-					onChangeText={(term) => this.handleChange(term)}
-					lightTheme
-					value={this.state.searchTerm}
-				/>
-				
 				<FlatList
 					data={this.state.dataSource}
 					initialNumToRender={20}
 					renderItem={({ item }) => (
-						<Artist
-							id={item.id}
-							name={item.name}
-							image={item.images[item.images.length - 1]}
-							followers={item.followers.total}
-							popularity={item.popularity}
-							uri={item.uri}
-						></Artist>
+						<Album
+                        id={item.id}
+                        name={item.name}
+                        image={item.images[item.images.length - 1]}
+                        artists={item.artists}
+                        release_date={item.release_date}
+                        total_tracks={item.total_tracks}
+                        external_url={item.external_urls.spotify}
+						></Album>
 					)}
 					onEndReached={() => {
 						this.loadMore();
@@ -117,7 +114,6 @@ export default class ArtistsScreen extends React.Component {
 					ListFooterComponent={this.renderFooter}
 					keyboardDismissMode="on-drag"
 				></FlatList>
-				
 			</View>
 		);
 	}
@@ -130,3 +126,7 @@ const styles = StyleSheet.create({
 		alignItems: "center",
 	},
 });
+
+export default function({navigation, route}) {
+    return <AlbumsScreen id={route.params.id} artist={route.params.artist} />
+}
