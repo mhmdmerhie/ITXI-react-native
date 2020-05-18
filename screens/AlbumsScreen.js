@@ -58,22 +58,6 @@ class AlbumsScreen extends React.Component {
 		});
 	};
 
-	renderFooter = () => {
-		if (!this.state.loading) return null;
-
-		return (
-			<View
-				style={{
-					paddingVertical: 20,
-					borderTopWidth: 1,
-					borderColor: "#CED0CE",
-				}}
-			>
-				<ActivityIndicator animating size="large" />
-			</View>
-		);
-	};
-
     renderFooter = () => {
 		if (!this.state.loading) return null;
 
